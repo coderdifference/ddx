@@ -16,12 +16,6 @@ config is one of these:
 | Item limits | | yes | `items` |
 | Tooltips | | yes | `skills.<id>.tooltip`, `tooltip_title`, … |
 
-The Paladin, as an example of how they combine: picking a spec runs an **action** that sets `spec`; skill
-**conditions** then show that spec's skills; builders run an action that adds to `hp` (Holy Power), spenders
-one that sets it to 0; spender damage and healing are **formulas** of `hp`; an **animation variant**
-`{spec}_{hp}` draws Holy Power rings at the hero's feet; the **tooltips** show the numbers for the current and
-next Holy Power; a **raid_start event** resets the spec.
-
 ## Fields
 A field is a named integer stored per hero for the config features. Fields are declared in `fields` (and
 implicitly by any other key that names them).
@@ -38,7 +32,7 @@ implicitly by any other key that names them).
 - **One global list of names.** Field names are shared by all loaded classes: two classes that both declare
   `charges` use the same name, but still separate values per hero. The library holds at most **64 field
   names** in total, including `test` (always registered, for experiments) and one `cd_<name>` per cooldown.
-- **Integers only.** Fractions come from formulas (`"dmg": "-90% + 40% * hp"`), not from fields.
+- **Integers only.** Fractions come from formulas (`"dmg": "-90% + 40% * ex_charge"`), not from fields.
 
 **Monster values.** Native engine hooks can also store an integer on a Monster. The built-in
 `ddx_set_<field>_<n>` / `ddx_add_<field>_<n>` effects write the effect target's Monster value, and the
@@ -48,14 +42,14 @@ fields only. Native skill-resolution code can query the active performer, skill,
 value. There is not yet a JSON rule for applying an action based on a Monster value.
 
 ### Enums
-`"enums": {"spec": ["none", "holy", "prot", "ret"]}` names a field's values by index: `none` = 0,
-`holy` = 1 and so on. Anywhere the config takes a value for that field (conditions, `set`, item limits) you
-can write the name instead of the number, and templates and tooltips print the name (`{spec}` → `holy`).
+`"enums": {"ex_mode": ["idle", "active"]}` names a field's values by index: `idle` = 0,
+`active` = 1. Anywhere the config takes a value for that field (conditions, `set`, item limits) you
+can write the name instead of the number, and templates and tooltips print the name (`{ex_mode}` → `active`).
 Unset fields read 0, so make the first name your "nothing chosen yet" state.
 
 ### Limits
-`"limits": {"hp": [0, 3]}` clamps the field after every action and every tooltip `@` change. A limited
-field also gives formulas and tooltips `hp_min` / `hp_max` (0 and 3 here), and it's what lets base tooltips
+`"limits": {"ex_charge": [0, 3]}` clamps the field after every action and every tooltip `@` change. A limited
+field also gives formulas and tooltips `ex_charge_min` / `ex_charge_max` (0 and 3 here), and it's what lets base tooltips
 list a spender's values ([Tooltips](04-tooltips.md#base-tooltips-outside-a-raid)). Unlimited fields aren't
 clamped.
 
@@ -74,11 +68,11 @@ effect, a trinket, a curio.
 
 ```json
 "actions": {
-    "cp_reset": {
-        "remove_buffs": ["CP_HOLY_SPEC_*", "CP_PROT_SPEC_*", "CP_RET_SPEC_*"],
-        "set": {"spec": "none", "hp": 0}
+    "ex_reset": {
+        "remove_buffs": ["EX_TEMP_*"],
+        "set": {"ex_charge": 0}
     },
-    "cp_hp_gain": {"add": {"hp": 1}}
+    "ex_gain": {"add": {"ex_charge": 1}}
 }
 ```
 
@@ -93,8 +87,7 @@ Rules that matter when you design skills:
 - **The action runs on the effect's target.** An effect with `.target "performer"` changes the user of the
   skill; one with `.target "target"` changes the actor it lands on (for an ally-targeting skill, this is a hero).
   If the target isn't a hero of a class with that action, nothing happens.
-- **The effect must really apply.** `.on_miss false` means a missed attack doesn't run the action (a Paladin
-  builder that misses gains no Holy Power). `.chance` applies too.
+- **The effect must really apply.** `.on_miss false` means a missed attack doesn't run the action. `.chance` applies too.
 - **Once per skill use on the performer.** A multi-target skill applies its effects once per target, so an AoE
   builder would otherwise gain once per enemy hit. The library runs a given action on the performer at most
   once per skill use. (Outside a skill, from items or events, it always runs.)
@@ -112,9 +105,8 @@ A skill listed under `skills` with condition keys is only **shown and usable** w
 
 ```json
 "skills": {
-    "pick_holy":  {"spec": "none"},
-    "holy_word":  {"spec": "holy", "hp_min": 1},
-    "sotr":       {"spec": ["prot", "ret"], "hp_min": 1, "hp_max": 3}
+    "example_strike": {"ex_mode": "active"},
+    "example_burst":  {"ex_charge_min": 1, "ex_charge_max": 3}
 }
 ```
 
@@ -134,13 +126,12 @@ no conditions, is always allowed.
 retiring a skill that existing heroes already own).
 
 **Placeholder levels.** A skill with `"guild_first_rank": 2` treats its level 0 as a placeholder that every
-hero owns but can't use: it's kept off the list until the hero buys level 1 in the Guild. This is how the
-Paladin's tier 1 skills (Light of Dawn, Hammer of the Righteous, Cleanse, Judgement) start locked.
+hero owns but can't use: it's kept off the list until the hero buys level 1 in the Guild.
 Details in [UI features](05-ui-features.md#placeholder-levels-and-guild_first_rank).
 
 ## Formulas: numbers that follow fields
 A formula is a string with numbers, `%` (70% = 0.7), field names, `+ - * /` and brackets:
-`"4 + 5 * hp"`, `"-100% + 70% * hp"`, `"(2 + 3 * hp) / 2"`. Names are fields, plus `<field>_min` /
+`"4 + 5 * ex_charge"`, `"-100% + 70% * ex_charge"`, `"(2 + 3 * ex_charge) / 2"`. Names are fields, plus `<field>_min` /
 `<field>_max` for limited fields. Division by 0 gives 0. A syntax error or unknown name logs
 `formula error: "…"` and the formula is ignored.
 
@@ -152,17 +143,15 @@ A formula is a string with numbers, `%` (70% = 0.7), field names, `+ - * /` and 
 
 - `dmg` is a fraction, like `.dmg`: `-0.3` is -30%. The game still adds the skill's rank damage bonus on top,
   and buffs, crits and protection apply as normal.
-- `heal` is healing points, rounded to the nearest integer. Heal buffs (the Paladin's +20% heal spec buff)
-  still apply.
+- `heal` is healing points, rounded to the nearest integer. Heal buffs still apply.
 - Because the damage modifier is computed when the skill is selected, a spender's damage uses the resource
   *before* the skill's own spend effect runs.
-- Effect heal formulas read the caster, not the target: Light of Dawn heals the other heroes by the
-  **caster's** Holy Power.
+- Effect heal formulas read the caster's fields, including when the effect heals another hero.
 - Formulas also drive tooltip numbers, so a tooltip can never disagree with what the skill does.
 
 ## Effect variants
-`"effect_variants": {"cp_x": "cp_x_{hp}"}` swaps an effect for another one, chosen by the **performer's**
-fields, before it applies: `cp_x` becomes `cp_x_2` at 2 Holy Power, if an effect with that name exists (if not,
+`"effect_variants": {"ex_effect": "ex_effect_{ex_charge}"}` swaps an effect for another one, chosen by the **performer's**
+fields, before it applies: `ex_effect` becomes `ex_effect_2` at 2 Charge, if an effect with that name exists (if not,
 the original is used and the log says so). Templates use `{field}`, with enum fields as names. Actions then match
 the swapped name. Use this when a formula isn't enough: a different buff, a different target, a stun that
 only lands at full resource. For plain heal amounts prefer an `effects` formula (one effect instead of one per
@@ -183,28 +172,24 @@ value).
 | `round_end` | at the end of each round | `Hero::OnRoundEnd` |
 | `camp_start` | camping begins (**untested**) | `Hero::OnCampStart` |
 
-Actions run after the game's own function (for `turn_start`, before the hero acts). The Paladin uses
-`"raid_start": ["cp_reset"]` to start each expedition without a spec. Every event but `camp_start` is confirmed.
+Actions run after the game's own function (for `turn_start`, before the hero acts).
+For example, `"raid_start": ["ex_reset"]` can clear a temporary resource at expedition start.
+Check the hook's platform coverage and installation log before relying on it.
 
 ## Animation variants
-`"animation_variants": ["{spec}_{hp}", "{spec}"]` makes a hero play `<anim>_<variant>` in place of `<anim>`
-whenever the hero's sprite has an animation by that name. Templates are tried in order; the first one the
-sprite has wins, otherwise the game plays the plain animation. At `spec` = holy and `hp` = 2 the hero's
-`combat` animation becomes `combat_holy_2`, `walk` becomes `walk_holy_2`, and so on. The game re-applies the
-stance animation after every action and when walking, so a field change shows at the end of the action
-without anything else to do.
+`"animation_variants": ["charge_{ex_charge}"]` tries `<anim>_charge_<value>` in place of `<anim>`.
+At `ex_charge` = 2, the game tries `combat_charge_2` instead of `combat`. If the sprite lacks the variant,
+it plays the original animation. Templates are tried in order, and the first existing variant wins.
 
-This is how the Paladin shows Holy Power: its skeletons have `combat_holy_1` … `combat_ret_3` (and the same
-for `walk`, `idle`, `investigate`) with 1-3 coloured rings. A variant missing for one animation falls back per
-animation, so give every state a variant in every animation file you care about. Skeletons must be Spine
-2.1.27; your own art or data tools shows how to add animations to a skeleton without Spine.
+Supply variants for each animation state you want to change. Restore any modified slot colours or attachments
+in the plain animation too. The game's skeleton format is Spine 2.1.27.
 
 ## Cooldowns
 ```json
-"cooldowns": {"prot_builder": {"turns": 1, "unit": "own"}},
+"cooldowns": {"ex_shared": {"turns": 1, "unit": "own"}},
 "skills": {
-    "prot_crusader_strike": {"cooldown": "prot_builder"},
-    "hotr":                 {"cooldown": "prot_builder"}
+    "example_strike": {"cooldown": "ex_shared"},
+    "example_burst":                 {"cooldown": "ex_shared"}
 }
 ```
 After a hero uses a skill with a cooldown, every skill naming the same cooldown is greyed out and refused for
@@ -214,16 +199,15 @@ act-outs respect them. The counter is a field `cd_<name>`, so it's saved and rea
 
 ## Item limits
 DD1 hard-codes who may use each vanilla supply item, and has no rule for mod items (anyone could use them).
-`"items": {"cp_respec": {"spec": ["holy", "prot", "ret"], "combat": false}}` limits the item to heroes of this
-class whose conditions hold, and `"combat": false` keeps it out of battles. The item's use effect goes through
-the same effect hook, so an action named after it runs on the hero it's used on: that's the Paladin's Libram of
-Rededication (a respec item).
+`"items": {"ex_refill": {"combat": false}}` limits a custom supply item to this class outside battle.
+The item's use effect goes through the same effect hook, so an action named after the item can change the
+recipient's fields. Add field conditions to restrict when the item can be used.
 
 ## Timing
-- **Effects apply in the order the skill lists them.** Light of Dawn lists `cp_lod_heal` (which reads Holy
-  Power) before `cp_hp_spend` (which clears it).
+- **Effects apply in the order the skill lists them.** Put an effect that reads a resource before the
+  effect that clears it.
 - **Change fields with unqueued effects** (`.queue false`). The hero's return-to-combat pose picks the
-  animation variant; a queued spend landed after the pose and left stale rings until the next animation.
+  animation variant; a queued spend landed after the pose and left stale visuals until the next animation.
 - **Damage formulas read the fields when the skill is chosen**, so a spender's hit uses the resource before
   its own spend.
 

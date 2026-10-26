@@ -1,21 +1,19 @@
 # 5. UI features
 
 Three UI changes let a class have more skills than vanilla's layout holds: the combat skill bar pages, the
-character sheet pages, and the Guild shows one icon per skill in a grid. All are **confirmed** on the Paladin.
+character sheet pages, and the Guild shows one icon per skill in a grid.
 
 The combat bar and character sheet features apply to **configured classes only**. The Guild grid and the
 `Name (rank)` tooltip titles apply to **every class**, vanilla included, whenever the library is loaded
-([global side effects](10-limits-and-distribution.md#global-side-effects)).
+([global side effects](10-limits-and-distribution.md#shared-behavior)).
 
 ## Grouping skills: `guild_row` and `sheet_page`
 Two per-skill keys organise all three screens:
 
 ```json
-"pick_holy":  {"guild_row": 1, "sheet_page": 1},
-"holy_shock": {"guild_row": 2, "sheet_page": 1},
-"holy_word":  {"guild_row": 2, "sheet_page": 1},
-"pick_prot":  {"guild_row": 3, "sheet_page": 2},
-"sotr":       {"guild_row": 4, "sheet_page": 2}
+"example_strike": {"guild_row": 1, "sheet_page": 1},
+"example_guard":  {"guild_row": 1, "sheet_page": 1},
+"example_burst":  {"guild_row": 2, "sheet_page": 2}
 ```
 
 - `guild_row`: the Guild row (1 = top).
@@ -23,18 +21,15 @@ Two per-skill keys organise all three screens:
   `guild_row` is used.
 - Within a row, page or group, skills keep the order of the config's `skills` section.
 
-The Paladin puts each spec's picker in its own centred Guild row with the spec's abilities in the row below,
-and both rows on one sheet page, so a page is one spec.
-
 ## Combat skill bar paging
 ```json
 "skill_pages": {
     "size": 4,
     "icons": [
-        "panels/icons_ability/cp_page_prev.png",
-        "panels/icons_ability/cp_page_next.png",
-        "panels/icons_ability/cp_page_prev_disabled.png",
-        "panels/icons_ability/cp_page_next_disabled.png"
+        "panels/icons_ability/ex_page_prev.png",
+        "panels/icons_ability/ex_page_next.png",
+        "panels/icons_ability/ex_page_prev_disabled.png",
+        "panels/icons_ability/ex_page_next_disabled.png"
     ]
 }
 ```
@@ -43,8 +38,7 @@ In battle, a hero whose valid skills (after [conditions](02-concepts.md#skill-co
 outnumber `size` gets pages:
 - Skills are ordered by `sheet_page` (else `guild_row`; skills with neither go last), then config order.
 - Groups are packed into pages: a group goes on the current page if it fits, otherwise it starts the next. A
-  group bigger than a page continues over several. So a spec's skills stay together, and small groups (the
-  three spec pickers) share a page.
+  group bigger than a page continues over several. Skills in the same group stay together where space allows, and small groups can share a page.
 - Two tabs page through: **next** right of the Pass tab, **previous** left of the first skill slot. Both wrap.
   With one page they're drawn disabled (the disabled icons) and don't respond.
 - The page goes back to the first at the start and end of each battle. It isn't saved.
@@ -59,12 +53,11 @@ so `size` 4 is the practical maximum.
 
 **Tab art.** 20 × 72 px, like the vanilla Pass tab. `icons` is `[prev, next, prev disabled, next disabled]`;
 the disabled pair is optional (the enabled icons are used instead). The game doesn't dim a disabled button
-itself, so draw the disabled icons dimmed. your own art or data tools draws the Paladin's.
+itself, so draw the disabled icons dimmed.
 
 **Banner layout.** The previous tab sits just left of the first skill, where the hero's name and class are
-drawn. The Paladin mod overrides the banner layout to move them 24 px left:
-`CataclysmicPaladin/scripts/layout/panel.banner.darkest` (`name_layout .pos 248 38`, the rest vanilla). This file
-applies to every hero's banner. A mod that uses paging needs it (or its own version) too.
+drawn. If they overlap, supply your own `scripts/layout/panel.banner.darkest` override and adjust the name
+layout. This file affects every hero's banner, so check vanilla classes and other UI mods too.
 
 ## Character sheet pages
 For configured classes the character sheet's combat skill grid shows one row at a time, in pages:
@@ -100,28 +93,26 @@ Tooltips in the Guild are [base tooltips](04-tooltips.md#base-tooltips-outside-a
 
 ### Placeholder levels and `guild_first_rank`
 DD1 gives every hero level 0 of every skill in the class. To make a skill that must be **bought before it can
-be used** (the Paladin's tier 1 skills), give it a placeholder level 0 with no effects and
+be used**, give it a placeholder level 0 with no effects and
 `"guild_first_rank": 2` in the config:
 
 ```
-combat_skill: .id "light_of_dawn" .level 0 … .generation_guaranteed true          (placeholder: no effects)
-combat_skill: .id "light_of_dawn" .level 1 … .effect "cp_lod_heal" "cp_hp_spend"  (rank 1)
+combat_skill: .id "example_burst" .level 0 … .generation_guaranteed true          (placeholder: no effects)
+combat_skill: .id "example_burst" .level 1 … .effect "ex_burst"  (rank 1)
 …
 ```
 ```json
-"light_of_dawn": {"guild_first_rank": 2, "guild_row": 2, "spec": "holy", "hp_min": 1}
+"example_burst": {"guild_first_rank": 2, "guild_row": 2}
 ```
 
 - The placeholder level is kept off the skill list (never usable) and off the character sheet.
 - In the Guild, while only the placeholder is owned, the icon shows disabled if level 1 is locked, or as
   unlearned (buyable) if it isn't; a click buys level 1. Ranks count from level 1, in the badge and in `[[rank]]`.
-- Gate the first real rank in the upgrade tree like any prerequisite. The Paladin's Light of Dawn needs the
-  Holy spec skill at rank 2:
+- Gate the first real rank in the upgrade tree like any prerequisite. For example:
   ```json
   {"code": "1", "currency_cost": [{"type": "gold", "amount": 250}],
    "prerequisite_requirements": [
-       {"tree_id": "cpaladin.light_of_dawn", "requirement_code": "0"},
-       {"tree_id": "cpaladin.pick_holy", "requirement_code": "1"},
+       {"tree_id": "example_class.example_burst", "requirement_code": "0"},
        {"tree_id": "guild.skill_levels", "requirement_code": "a"}],
    "prerequisite_resolve_level": 1}
   ```
@@ -130,12 +121,12 @@ combat_skill: .id "light_of_dawn" .level 1 … .effect "cp_lod_heal" "cp_hp_spen
 
 ## Files the UI features need
 The library loads these from the game's data (mods included). The library package ships the Guild's
-([Limits and distribution](10-limits-and-distribution.md#the-library-package)); your tab icons are yours.
+([Limits and distribution](build-and-release.md#ddx-package)); your tab icons are yours.
 
 | File | Size | Used by | Made by |
 |---|---|---|---|
-| `panels/engine_guild_rank.png` | 26 × 26 | the Guild's rank badge (every class) | the package (made by the Paladin's your own art or data tools) |
-| `panels/engine_guild_buy.png` | 72 × 72 | the Guild's "can be bought" overlay (every class) | the package (the same tool; keep `BUY_CENTRE` equal to `RANK_X`/`RANK_Y` in `guild.c`) |
+| `panels/engine_guild_rank.png` | 26 × 26 | the Guild's rank badge (every class) | DDX resource package |
+| `panels/engine_guild_buy.png` | 72 × 72 | the Guild's "can be bought" overlay (every class) | DDX resource package |
 | string `engine_guild_cost` | | the Guild's cost line; `%s` = the amounts (`Cost: %s`) | the package's string table |
-| your tab icons | 20 × 72 each | `skill_pages.icons` | your own art or data tools (the Paladin's) |
-| `scripts/layout/panel.banner.darkest` | | room for the previous tab | copy the Paladin's |
+| your tab icons | 20 × 72 each | `skill_pages.icons` | your mod |
+| `scripts/layout/panel.banner.darkest` | | room for the previous tab | your mod, if needed |

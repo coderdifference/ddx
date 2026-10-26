@@ -1,7 +1,6 @@
 # 3. Config reference
 
-One file per class (plus files of global sections, such as `act_outs`): `<mod>/engine/<anything>.engine.json` (the Paladin's is
-`CataclysmicPaladin/engine/cpaladin.engine.json`). Plain JSON: no comments, no trailing commas. It's read once
+One file per class (plus files of global sections, such as `act_outs`): `<mod>/engine/<anything>.engine.json`. Plain JSON: no comments, no trailing commas. It's read once
 at game launch.
 
 Unknown top-level keys are ignored silently, so check spelling against this page. **Unknown keys inside a
@@ -18,7 +17,7 @@ skill entry are read as conditions on a field of that name** (see [Pitfalls](#pi
 | `actions` | {effect name: object} | `{}` | Field changes run by an effect of that name; [below](#actions). |
 | `hooks` | [rule] | `[]` | **Global**: rules on hook points, from any engine file: filters, changes before the game acts and actions through the game's code; [chapter 12](12-hook-points.md#from-a-config). Replaces the old per-class `events` map. |
 | `effects` | {effect name: {"heal": formula}} | `{}` | Heal formula for an effect, on the performer's fields. Up to 32. |
-| `effect_variants` | {effect name: template} | `{}` | Apply the effect the template names instead (`"cp_x": "cp_x_{hp}"`), if it exists. Up to 32. |
+| `effect_variants` | {effect name: template} | `{}` | Apply the effect the template names instead (`"ex_effect": "ex_effect_{ex_charge}"`), if it exists. Up to 32. |
 | `animation_variants` | [template] | `[]` | `<anim>_<variant>` templates, first match wins. Up to 8, each under 64 characters. |
 | `cooldowns` | {name: {"turns": n, "unit": "own" \| "actor"}} | none | Named cooldowns skills can share. `turns` defaults to 1, `unit` to `own`. Up to 16. Each adds a field `cd_<name>`. |
 | `cooldown_tooltip` | string or [one, many] | none | Line added under the name of a skill that's cooling down (`[[cooldown]]` = turns left). The first is used at 1 turn, the second at 2+. A single string serves both. |
@@ -123,7 +122,7 @@ outcome, after the bark. Targets are picked when the outcome plays. From C: `act
 without the library, its data loads them as unknown (an assert, then nothing happens).
 
 ## Skills
-Keys are skill ids exactly as `.id` in the class's `info.darkest` (`combat_skill: .id "holy_word" …`). The Move
+Keys are skill ids exactly as `.id` in the class's `info.darkest` (`combat_skill: .id "example_mend" …`). The Move
 skill's id is `move` (useful for `tooltip_title`). All keys are optional.
 
 | Key | Type | What it does |
@@ -139,7 +138,7 @@ skill's id is `move` (useful for `tooltip_title`). All keys are optional.
 | `tooltip_title` | string | This skill's name line template (wins over the top-level one). |
 | `guild_row` | number | Guild row (1 = top). Also the character sheet page and bar paging group when there's no `sheet_page`. |
 | `sheet_page` | number | Character sheet page (1 = first) and combat bar paging group. |
-| `guild_first_rank` | number | Levels below `guild_first_rank - 1` are placeholders: owned by every hero, never usable, not counted as a rank. Default 1 (no placeholder). The Paladin uses 2 (level 0 is the placeholder). |
+| `guild_first_rank` | number | Levels below `guild_first_rank - 1` are placeholders: owned by every hero, never usable, not counted as a rank. Default 1 (no placeholder). Set 2 to make level 0 the placeholder. |
 
 A skill can have up to 8 conditions (`<field>` / `_min` / `_max` keys together); all must hold.
 
@@ -150,7 +149,7 @@ Each entry of `tooltip` is a string or an object:
 |---|---|---|
 | `text` | string | **Required.** The line. `@<string id>` takes it from the string table. May hold `[[tokens]]` and colour markup, and start with `{font\|<font id>}`. |
 | `font` | string | A `font_ref` id from the game's `fonts/fonts.darkest` for this line. |
-| `with` | string | A field change for every token in the line without its own `@`: `"hp+1"`, `"hp-1"`, `"hp=3"`. For "next" lines. |
+| `with` | string | A field change for every token in the line without its own `@`: `"ex_charge+1"`, `"ex_charge-1"`, `"ex_charge=3"`. For "next" lines. |
 | `base` | bool | `false` leaves the line out of base (town and Guild) tooltips. Lines with `with` are always left out of them. |
 | any condition key | as for skills | The line shows only while its conditions hold. |
 
@@ -208,55 +207,4 @@ extra entries, so keep an eye on the `config <class>: …` summary line.
 - **Condition values must be valid.** An enum name that isn't in `enums` logs `bad value for field …` and
   the condition is dropped (so it no longer restricts anything).
 - **Skill ids are matched by hash of the exact id.** Case and underscores matter.
-- **`debug` is global** and on in the Paladin's config during development.
-
-## The Paladin's config, annotated
-The full file is `CataclysmicPaladin/engine/cpaladin.engine.json`. Its parts, in short:
-
-```jsonc
-{
-  "class": "cpaladin",
-  "fields": ["hp", "spec", "tier"],                  // Holy Power, specialisation, (unused) tier
-  "enums": {"spec": ["none", "holy", "prot", "ret"]},
-  "limits": {"hp": [0, 3]},                          // Holy Power 0-3; also gives [[hp_max]] = 3
-  "guild_centred_rows": [1, 3, 5],                   // spec skills centred above their abilities
-  "skill_pages": {"size": 4, "icons": [ /* prev, next, prev off, next off */ ]},
-  "cooldowns": {"prot_builder": {"turns": 1, "unit": "own"}},
-  "cooldown_tooltip": ["@cp_tt_cooldown_1", "@cp_tt_cooldown_n"],
-  "cooldown_ready_tooltip": ["@cp_tt_cooldown_ready_1", "@cp_tt_cooldown_ready_n"],
-  "skills": {
-    "pick_holy": {"guild_row": 1, "sheet_page": 1, "spec": "none"},   // spec picker: only without a spec
-    "holy_word": {                                                    // Holy spender
-      "guild_row": 2, "sheet_page": 1,
-      "spec": "holy", "hp_min": 1,                                    // needs Holy spec and 1+ Holy Power
-      "heal": "4 + 5 * hp",                                           // 9 / 14 / 19
-      "tooltip": [
-        {"text": "@cp_tt_spend"},                                     // "Spend 2/2 Holy Power"
-        {"text": "@cp_tt_heal_target"},                               // "Heal Target 14"
-        {"text": "@cp_tt_next", "base": false, "hp_max": 2},          // "Next Charge:" (not at full)
-        {"text": "@cp_tt_spend", "with": "hp+1", "hp_max": 2},        // same strings, one more Holy Power
-        {"text": "@cp_tt_heal_target", "with": "hp+1", "hp_max": 2}
-      ],
-      "tooltip_replace": true
-    },
-    "light_of_dawn": {"guild_first_rank": 2, "spec": "holy", "hp_min": 1 /* … */},   // tier 1: bought in the Guild
-    "sotr": {"spec": "prot", "hp_min": 1, "dmg": "-90% + 40% * hp" /* … */},
-    "prot_crusader_strike": {"spec": "prot", "cooldown": "prot_builder" /* … */},
-    "move": {"tooltip_title": "[[name]]"}                              // no rank on Move
-  },
-  "actions": {
-    "cp_pick_holy": {"set": {"spec": "holy", "hp": 0}},
-    "cp_hp_gain":   {"add": {"hp": 1}},
-    "cp_hp_spend":  {"set": {"hp": 0}},
-    "cp_reset":     {"remove_buffs": ["CP_HOLY_SPEC_*", "CP_PROT_SPEC_*", "CP_RET_SPEC_*"],
-                     "set": {"spec": "none", "hp": 0}}
-  },
-  "animation_variants": ["{spec}_{hp}"],             // combat_holy_2 etc.: Holy Power rings
-  // every expedition starts without a spec: a global hooks rule
-  // "hooks": [{"point": "raid_start", "class": "cpaladin", "do": [{"action": "cp_reset"}]}],
-  "effects": {"cp_lod_heal": {"heal": "2 + 3 * hp"}},// Light of Dawn's party heal, caster's Holy Power
-  "tooltip_title": "[[name]] {colour_start|neutral}([[rank]]){colour_end}",
-  "items": {"cp_respec": {"spec": ["holy", "prot", "ret"], "combat": false}},   // Libram: Paladins with a spec, out of battle
-  "debug": true
-}
-```
+- **`debug` is global**; enable it while testing and turn it off for release.

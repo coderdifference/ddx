@@ -1,6 +1,6 @@
 # 6. Tutorial: a class with a resource
 
-This walks through a small class built the way the Paladin is: a **Berserker** (`berserker`) with **Rage**, a
+This walks through an illustrative **Berserker** (`berserker`) with **Rage**, a
 resource of 0-5 that builder skills add to and spender skills use up.
 
 | Skill | Kind | Does |
@@ -12,14 +12,12 @@ resource of 0-5 that builder skills add to and spender skills use up.
 Rage is kept between battles within an expedition and reset at its start; each hero's Rage shows as a glow
 (optional art step).
 
-The Berserker is an illustration, not a mod in this repository. Every engine mechanism it uses is confirmed on
-the Paladin, and its skill lines are modelled on the Paladin's, but check any data line you write against a
-vanilla example (for a self-heal, the Hellion's Adrenaline Rush) before relying on it. The class's other files (weapons, armour, camp skills, trinkets, art) are an ordinary DD1
-class: follow `the game's ordinary modding formats` for those. This page covers what the engine adds.
+The Berserker is an illustration, not a complete mod in this repository. Check skill data against a vanilla
+example before using it. Weapons, armour, camp skills, trinkets and art follow ordinary DD1 class-modding
+formats; this page covers the DDX integration.
 
 ## 1. Start from a normal class mod
-Make the class as you would without the engine; copying a vanilla class (the Paladin started from the
-Crusader) is the quickest start. Pick a short class id: string keys like
+Make the class as you would without the engine. Use a vanilla class as a reference for its file structure. Pick a short class id: string keys like
 `combat_skill_name_<class>_<skill>` must stay under about 60 characters (`the game's ordinary modding formats`).
 
 Prefix your effects, buffs and strings with a short tag (`bk_` here) so they can't clash with vanilla or
@@ -42,7 +40,7 @@ combat_skill: .id "second_wind" .level 1 .heal 6 6 .launch 4321 .target .effect 
 
 - The `.dmg` on Execute and the `.heal` on Second Wind are overwritten by formulas (step 4), but keep sensible
   values: they're what the game shows if the library isn't loaded.
-- `.target` with nothing after it is a self-target skill (as the Paladin's Light of Dawn).
+- `.target` with nothing after it is a self-target skill.
 
 ## 3. Effects (`effects/berserker.effects.darkest`)
 The effects are triggers: named after config actions, with no payload.
@@ -54,7 +52,7 @@ effect: .name "bk_rage_spend" .target "performer" .chance 100% .on_hit true .on_
 
 - `.target "performer"`: the action changes the hero using the skill.
 - `.on_miss false` on the builder: a miss builds no Rage. `.on_miss true` on the spender: a miss still uses it
-  (your choice; the Paladin's spenders spend either way).
+  (choose the behavior that suits your mechanic).
 - `.queue false`: change the field straight away, before the hero's return pose picks the animation.
 - `.has_description false`: no tooltip line for the trigger.
 
@@ -107,7 +105,7 @@ effect: .name "bk_rage_spend" .target "performer" .chance 100% .on_hit true .on_
 ```
 
 What each part does:
-- `fields` / `limits`: one integer per hero, clamped to 0-5. It's saved with the game as `cp_rage`.
+- `fields` / `limits`: one integer per hero, clamped to 0-5. It's saved with the game as `ddx_rage`.
 - `actions`: `bk_rage_gain` runs whenever the `bk_rage_gain` effect applies to a Berserker, and so on.
   `bk_rage_reset` has no effect in the data at all: only the event uses it.
 - `events.raid_start`: each expedition starts at 0 Rage.
@@ -143,7 +141,7 @@ Damage 9-17
 its base tooltip: "Spend 1 Rage / Damage …" through "Spend 5 Rage / Damage …", one block per Rage value, because
 `rage_min` on a limited field makes it a spender ([Tooltips](04-tooltips.md#base-tooltips-outside-a-raid)).
 
-For your own colour (the Paladin's Holy Power gold), add `colours/berserker.colours.darkest`:
+For your own colour, add `colours/berserker.colours.darkest`:
 ```
 colour: .id "bk_rage"                                               .rgba #ff5a3c
 ```
@@ -184,10 +182,9 @@ Add `"animation_variants": ["rage_{rage}"]` and give the hero's skeletons animat
 `combat_rage_5` (and `walk_…`, `idle_…` if you want it outside battle too). The hero plays `combat_rage_3`
 at 3 Rage and plain `combat` at 0 (no `combat_rage_0` needed: a missing variant falls back to the plain
 animation). A plain animation doesn't reset slot colours or attachments the variants set, so key them back
-in the plain animation too. your own art or data tools is a worked example of adding such animations to a
-Spine 2.1.27 skeleton from Python.
+in the plain animation too. Use tools compatible with the game's Spine 2.1.27 skeleton format.
 
 ## Where to go next
-- A class that chooses a role at the start of each expedition (the Paladin's specs): [Cookbook](07-cookbook.md#choosing-a-spec-or-stance).
+- More field and event patterns: [Cookbook](07-cookbook.md).
 - Skills that must be bought before use, more than four skills, a Guild layout: [UI features](05-ui-features.md).
 - Something going wrong: [Testing and debugging](08-testing-and-debugging.md).
