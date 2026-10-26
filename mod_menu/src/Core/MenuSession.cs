@@ -11,6 +11,7 @@ public sealed class MenuSession
     private string? selected;
     private string? campaign;
     private bool open;
+    private string[] groupPath = [];
     private string? error;
 
     /// <summary>Optional build/validate handler receiving phase, mod ID, copied schema and draft. Returned schema/values are revalidated; an error rejects the action.</summary>
@@ -69,12 +70,14 @@ public sealed class MenuSession
                 open = true;
                 selected = null;
                 draft = null;
+                groupPath = [];
             }
             else if (action == "close")
             {
                 open = false;
                 selected = null;
                 draft = null;
+                groupPath = [];
             }
             else
             {
@@ -86,8 +89,23 @@ public sealed class MenuSession
                     if (!schemas.TryGetValue(id, out var schema))
                         throw new ArgumentException("Unknown mod.");
                     selected = id;
+                    groupPath = [];
                     draft = schema.Restore(saved[id] as JsonObject);
                     ApplyClient("build");
+                }
+                else if (action == "navigate")
+                {
+                    if (selected is null || draft is null)
+                        throw new InvalidOperationException("Select a mod first.");
+                    var path = (
+                        message["path"] as JsonArray
+                        ?? throw new ArgumentException("Expected a group path.")
+                    )
+                        .Select(n => n!.GetValue<string>())
+                        .ToArray();
+                    if (!OptionNavigation.Exists(schemas[selected], path))
+                        throw new ArgumentException("Unknown settings group.");
+                    groupPath = path;
                 }
                 else if (action == "edit")
                 {
@@ -179,6 +197,7 @@ public sealed class MenuSession
         open = false;
         selected = null;
         draft = null;
+        groupPath = [];
         saved = new();
         schemas.Clear();
     }
@@ -199,6 +218,9 @@ public sealed class MenuSession
             ["selected"] = selected,
             ["schema"] = selected is null ? null : schemas[selected].Document.DeepClone(),
             ["values"] = draft?.DeepClone(),
+            ["navigation"] = selected is null
+                ? null
+                : OptionNavigation.View(schemas[selected], groupPath),
             ["error"] = error,
             ["canSave"] = open && selected is not null,
         };

@@ -22,8 +22,15 @@ public abstract unsafe partial class DDXClient
     protected bool RegisterModOptions(string? path = null)
     {
         path ??= Path.Combine(EngineDirectory, "..", "mod_options", "options.json");
-        string schema = File.ReadAllText(path);
-        byte* text = Utf8(schema);
+        return RegisterModOptionsJson(JsonNode.Parse(File.ReadAllText(path))!.AsObject());
+    }
+
+    /// <summary>Registers a form constructed from merged mod data. Call once from OnInitialize; build callbacks can supply campaign-specific defaults.</summary>
+    /// <param name="form">Version 1 form with this mod's stable ID and numeric or selection fields. The registration takes a copy.</param>
+    /// <returns>False when the host does not support forms or rejects the schema.</returns>
+    protected bool RegisterModOptionsJson(JsonObject form)
+    {
+        byte* text = Utf8(form.ToJsonString());
         try
         {
             var register = (delegate* unmanaged[Cdecl]<

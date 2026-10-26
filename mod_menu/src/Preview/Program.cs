@@ -2,7 +2,9 @@ using System.Text.Json.Nodes;
 using DDXModMenu;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("http://127.0.0.1:5187");
+builder.WebHost.UseUrls(
+    Environment.GetEnvironmentVariable("DDX_PREVIEW_URL") ?? "http://127.0.0.1:5187"
+);
 var app = builder.Build();
 var gate = new object();
 var session = new MenuSession();
@@ -33,6 +35,10 @@ app.MapPost(
                 second["id"] = "example.interface";
                 second["title"] = "Interface Settings";
                 message["schemas"] = new JsonArray(schema, second);
+                if (Environment.GetEnvironmentVariable("DDX_PREVIEW_FORM") is string clientForm)
+                    message["schemas"]!
+                        .AsArray()
+                        .Add((JsonNode)JsonNode.Parse(File.ReadAllText(clientForm))!);
                 message["saved"] = campaigns.TryGetValue(token, out var data)
                     ? data.DeepClone()
                     : null;

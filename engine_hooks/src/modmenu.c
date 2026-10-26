@@ -64,7 +64,7 @@ int modmenu_form_register(const char *schema, ModMenuDispatch fn, ModMenuRelease
     const char *id = mm_str(j, "id");
     const JVal *fields = json_get(j, "fields"), *version = json_get(j, "version");
     if (!j || j->t != J_OBJ || !*id || strlen(id) > 128 || !*mm_str(j, "title") || !fields || fields->t != J_ARR ||
-        fields->n > 256 || !version || version->t != J_NUM || version->num != 1) {
+        fields->n > 2048 || !version || version->t != J_NUM || version->num != 1) {
         json_free(j);
         return 0;
     }

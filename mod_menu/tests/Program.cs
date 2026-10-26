@@ -216,3 +216,67 @@ Check(
     "bad schema isolated"
 );
 Console.WriteLine($"PASS: {count} final assertions");
+
+// Real generated forms can be supplied by client integration checks.
+if (args.Length > 1)
+{
+    var clientForm = JsonNode.Parse(File.ReadAllText(args[1]))!.AsObject();
+    var clientSchema = new OptionSchema(clientForm);
+    var seenFields = new HashSet<string>();
+    void Visit(string[] path)
+    {
+        var node = OptionNavigation.View(clientSchema, path);
+        foreach (var field in node["fields"]!.AsArray())
+            Check(
+                seenFields.Add(field!["id"]!.GetValue<string>()),
+                "navigation must show each field once"
+            );
+        foreach (var group in node["groups"]!.AsArray())
+            Visit(group!["path"]!.AsArray().Select(n => n!.GetValue<string>()).ToArray());
+    }
+    Visit([]);
+    Check(
+        seenFields.Count == clientSchema.Fields.Count,
+        "Every client field must be reachable through nested groups"
+    );
+
+    var clientMenu = new MenuSession { Commit = (_, _) => true };
+    var loaded = clientMenu.Dispatch(
+        new JsonObject
+        {
+            ["event"] = "load",
+            ["campaign"] = "client",
+            ["schemas"] = new JsonArray(clientForm.DeepClone()),
+        }
+    );
+    Check(loaded["error"] is null, "client form load");
+    clientMenu.Dispatch(
+        new JsonObject
+        {
+            ["event"] = "open",
+            ["campaign"] = "client",
+            ["paused"] = true,
+        }
+    );
+    var selectedClient = clientMenu.Dispatch(
+        new JsonObject
+        {
+            ["event"] = "select",
+            ["campaign"] = "client",
+            ["mod"] = clientSchema.Id,
+        }
+    );
+    Check(
+        selectedClient["error"] is null
+            && selectedClient["values"]!.AsObject().Count == clientSchema.Fields.Count,
+        "client form all defaults"
+    );
+    Check(
+        clientMenu.Dispatch(new JsonObject { ["event"] = "save", ["campaign"] = "client" })["error"]
+            is null,
+        "client form Save"
+    );
+    Console.WriteLine($"PASS: client form with {clientSchema.Fields.Count} fields");
+}
+
+GroupNavigationChecks.Run();

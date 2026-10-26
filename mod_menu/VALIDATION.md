@@ -6,7 +6,7 @@
 - Shared C# starter builds with the extended DDXClient API, zero warnings/errors.
 - macOS native DDX and service build; Windows native DDX cross-build and NativeAOT service build in local UTM guest storage. Existing Windows compiler warnings remain outside the new menu sources.
 - Windows menu and storage entry prologues checked against the guest executable. This is static mapping evidence, not live-game proof.
-- Both platform packages stage successfully and include the built-in service and DDX form in their manifests. Missing service artifacts stop staging.
+- Both platform packages stage successfully and include the built-in service in their manifests. Missing service artifacts stop staging.
 - Browser preview exercised pause gating, blank initial right pane, generated controls and a Unicode text save using the controller.
 
 The initial offline checks did not modify a game installation or campaign save. Both platform installations were subsequently updated with backups and hash verification. Campaign save/reload and full modal/input behavior still need verification on both platforms. Current native text fields append, Backspace and commit with Enter; full caret editing, composition display and controller navigation remain follow-up UI work.

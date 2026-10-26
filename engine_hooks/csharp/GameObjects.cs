@@ -299,6 +299,34 @@ public sealed unsafe class GameObjects(DDXApi api)
                 api.NativeExport("game_upgrade_purchased")
         )(tree, level, guid) != 0;
 
+    /// <summary>Reads an existing currency requirement for a building or skill upgrade on the game thread.</summary>
+    /// <param name="tree">Hashed upgrade-tree ID.</param>
+    /// <param name="level">Zero-based level (0 corresponds to code a).</param>
+    /// <param name="currency">Hashed currency type, for example gold or deed.</param>
+    /// <param name="amount">Receives the requirement when found.</param>
+    /// <returns>False when the requirement, currency or native support is unavailable.</returns>
+    public bool TryUpgradeCost(uint tree, int level, uint currency, out int amount)
+    {
+        int value = 0;
+        var get = (delegate* unmanaged[Cdecl]<uint, int, uint, int*, byte>)
+            api.NativeExport("game_upgrade_cost");
+        bool found = get(tree, level, currency, &value) != 0;
+        amount = value;
+        return found;
+    }
+
+    /// <summary>Changes an existing upgrade currency requirement. The game reads it for both display and purchase.</summary>
+    /// <param name="tree">Hashed upgrade-tree ID.</param>
+    /// <param name="level">Zero-based level (0 corresponds to code a).</param>
+    /// <param name="currency">Hashed currency type; this method never creates new currency entries.</param>
+    /// <param name="amount">Nonnegative cost. Call on the game thread after campaign load; reapply campaign defaults on each load.</param>
+    /// <returns>Whether the existing requirement was updated.</returns>
+    public bool SetUpgradeCost(uint tree, int level, uint currency, int amount) =>
+        (
+            (delegate* unmanaged[Cdecl]<uint, int, uint, int, byte>)
+                api.NativeExport("game_upgrade_set_cost")
+        )(tree, level, currency, amount) != 0;
+
     /// <summary>Removes the supplied actor&apos;s current affliction through the semantic native adapter.</summary>
     /// <param name="actor">Borrowed native actor address. The native owner must remain alive throughout the call.</param>
     /// <remarks>Uses the DDX native contract: <c>game_actor_remove_affliction</c>. Call on the game thread with live borrowed handles; native declarations define pointer ownership and callback lifetimes.</remarks>

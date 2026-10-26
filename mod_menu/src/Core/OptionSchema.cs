@@ -24,8 +24,8 @@ public sealed class OptionSchema
             );
         if (Document["version"]?.GetValue<int>() != 1)
             throw new ArgumentException("Unsupported schema version.");
-        if (Document["fields"] is not JsonArray fields || fields.Count > 256)
-            throw new ArgumentException("Expected at most 256 fields.");
+        if (Document["fields"] is not JsonArray fields || fields.Count > 2048)
+            throw new ArgumentException("Expected at most 2048 fields.");
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var node in fields)
         {
@@ -34,6 +34,34 @@ public sealed class OptionSchema
             _ = Required(field, "label");
             if (Required(field, "id").Length > 128 || Required(field, "label").Length > 512)
                 throw new ArgumentException("Field IDs or labels exceed their length limits.");
+            if (field["group"] is not null)
+            {
+                if (
+                    field["group"] is not JsonArray group
+                    || group.Count > 12
+                    || group.Any(n =>
+                        n is not JsonValue
+                        || !n.AsValue().TryGetValue<string>(out var name)
+                        || string.IsNullOrWhiteSpace(name)
+                        || name.Length > 128
+                    )
+                )
+                    throw new ArgumentException(
+                        "Groups require at most 12 nonempty names of at most 128 characters."
+                    );
+            }
+            if (
+                field["description"] is not null
+                && (
+                    field["description"] is not JsonValue help
+                    || !help.TryGetValue<string>(out var text)
+                    || text.Length > 2048
+                    || text.Contains((char)0)
+                )
+            )
+                throw new ArgumentException(
+                    "Field descriptions must be strings of at most 2048 characters."
+                );
             var kind = Required(field, "type");
             if (kind is not ("text" or "integer" or "float" or "single" or "multi" or "enum"))
                 throw new ArgumentException($"Unsupported field type: {kind}");
