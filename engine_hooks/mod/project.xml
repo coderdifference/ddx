@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+  <Title>DDX: Darkest Dungeon Extender</Title>
+  <Language>english</Language>
+  <ItemDescriptionShort>Shared engine extensions for Darkest Dungeon mods.</ItemDescriptionShort>
+  <ModDataPath />
+  <Visibility>private</Visibility>
+  <UploadMode>dont_submit</UploadMode>
+  <VersionMajor>0</VersionMajor><VersionMinor>1</VersionMinor><TargetBuild>0</TargetBuild>
+  <PublishedFileId />
+</project>

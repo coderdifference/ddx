@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <language id="english">
+    <entry id="str_ddx_example_name"><![CDATA[DDX Example{colour_start|notable}: a sample mod built on Darkest Dungeon Extender{colour_end}]]></entry>
+    <entry id="str_ddx_example_popup"><![CDATA[Bloodied!]]></entry>
+    <entry id="str_ddx_example_overlay"><![CDATA[Kills this campaign: {kills}]]></entry>
+  </language>
+</root>

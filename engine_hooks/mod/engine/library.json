@@ -1,0 +1,5 @@
+{
+  "_comment": "Marks this mod folder as the engine library's package (engine_hooks/src/paths.c, library_engine_dir): its engine/ui layouts are the defaults every mod's layouts fall back to per name, and it ships the library's art, strings and binary (bin/). It is not a client mod: the library doesn't load configs or clients from it.",
+  "name": "engine_hooks",
+  "version": "0.1"
+}

@@ -1,0 +1,4 @@
+{
+  "_comment": "DDX Example's overlay (ddx_example_engine/src/example_overlay.c). Read every frame: edit while the game runs. pos: from the screen's centre (the game's 1920 x 1080 GUI space); font: a font_ref id; colour: a colours.darkest id; show: 0 hides it.",
+  "overlay": {"show": 1, "pos": [0, -500], "font": "tooltip", "colour": "notable"}
+}

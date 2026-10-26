@@ -1,0 +1,16 @@
+.DS_Store
+**/build/
+**/bin/
+**/obj/
+*.dylib
+*.dll
+*.exe
+*.a
+*.o
+*.pdb
+*.log
+*.loc2
+*_modfiles.txt
+__pycache__/
+.vs/
+.vscode/

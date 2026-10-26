@@ -1,0 +1,8 @@
+{
+  "_comment": "DDX Example's data-only part: hook rules need no C (docs/12-hook-points.md 'From a config'). A file without \"class\" holds only global sections.",
+  "hooks": [
+    {"point": "kill", "class": "crusader", "do": [{"stress": -2}, {"log": "DDX Example: a Crusader's kill eases their stress"}]},
+    {"point": "hp_damage", "phase": "before", "match": {"type": "bleed"}, "when": "torch >= 75", "scale": 0.5},
+    {"point": "camp_end", "do": [{"item": "torch", "type": "supply", "amount": 1}]}
+  ]
+}

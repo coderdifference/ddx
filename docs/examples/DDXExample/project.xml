@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+    <PreviewIconFile/>
+    <ItemDescriptionShort/>
+    <ModDataPath/>
+    <Title>DDX Example</Title>
+    <Language>english</Language>
+    <UpdateDetails/>
+    <Visibility>private</Visibility>
+    <UploadMode>dont_submit</UploadMode>
+    <VersionMajor>0</VersionMajor>
+    <VersionMinor>1</VersionMinor>
+    <TargetBuild>0</TargetBuild>
+    <Tags>
+        <Tags>Gameplay Tweaks</Tags>
+    </Tags>
+    <ItemDescription>A sample mod built on Darkest Dungeon Extender. Requires Darkest Dungeon Extender.</ItemDescription>
+    <PublishedFileId/>
+</project>

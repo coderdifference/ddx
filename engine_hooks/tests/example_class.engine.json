@@ -1,0 +1,20 @@
+{
+  "class": "example_knight",
+  "fields": ["hp", "spec", "tier"],
+  "enums": {"spec": ["none", "light", "guard", "wrath"]},
+  "limits": {"hp": [0, 3]},
+  "skills": {
+    "pick_light": {"guild_row": 1, "spec": "none"},
+    "pick_guard": {"guild_row": 2, "spec": "none"},
+    "pick_wrath": {"guild_row": 3, "spec": "none"},
+    "light_bolt": {"guild_row": 1, "spec": "light"},
+    "wrath_strike": {"guild_row": 3, "spec": "wrath"},
+    "verdict": {"guild_row": 3, "spec": "wrath", "hp_min": 1, "dmg": "-100% + 70% * hp"}
+  },
+  "actions": {
+    "ex_pick_wrath": {"set": {"spec": "wrath", "hp": 0}},
+    "ex_power_gain": {"add": {"hp": 1}},
+    "ex_respec": {"remove_buffs": ["EX_LIGHT_SPEC_*", "EX_GUARD_SPEC_*", "EX_WRATH_SPEC_*"], "set": {"spec": "none", "hp": 0}}
+  },
+  "effects": {"ex_mend_heal": {"heal": "2 + 3 * hp"}}
+}

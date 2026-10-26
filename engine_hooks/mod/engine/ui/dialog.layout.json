@@ -1,0 +1,45 @@
+{
+  "_comment": "Dialog frames drawn at any size (engine_hooks/src/ui_dialog.c), one section per style. Read by ui_layout.c: edit while the game runs.",
+  "_frame": "The game's confirm dialog cut into pieces by tools/make_dialog_art.py (shared/engine_dialog/engine_dialog_<piece>.png): border is the corners' size (the top row holds the 90 px header), ornament the crest piece's size (centred on the top edge), splatter each corner piece's top left from its corner of the frame (show 0 hides the splatter). Rerunning the tool prints the offsets.",
+  "frame": {
+    "art": "shared/engine_dialog/engine_dialog",
+    "border": {"left": 20, "top": 90, "right": 20, "bottom": 20},
+    "ornament": [434, 104],
+    "splatter": {"show": 1, "tl": [-107, -97], "tr": [-312, -97], "bl": [-107, -237], "br": [-286, -156]}
+  },
+  "_tooltip": "The game's tooltip background (shared/tooltip/tooltip_background.png) cut by tools/make_panel_art.py into shared/engine_panel/engine_tipframe_<piece>.png: corners 19 px (15% of the 128 px texture, as GUI_TooltipRender draws them), no ornament, no splatter. edge: where the frame's visible border ends inside the art (its line is 12-13 px in, a soft shadow outside it), for content that places itself against the frame's edge (the item view's resolve disc). A background for panels that look like tooltips.",
+  "tooltip": {"art": "shared/engine_panel/engine_tipframe", "border": {"left": 19, "top": 19, "right": 19, "bottom": 19}, "edge": 14, "splatter": {"show": 0}},
+  "_confirm": "Every question dialog (engine_hooks/src/ui_confirm.c), the game's and ours: the frame (style) sized to the question (text_width wide, from top under the frame's top edge) and a row of buttons gap below it, bottom above the frame's bottom; side on each side, at least min_width wide. A button is its label's width plus pad each side (at least min_width), gap apart, the row centred; the hover picture shows under the hovered one, hover_pad_y taller than the row above and below; text_dy nudges the labels. back: the game's back button (dialogs that can be backed out of), offset from the frame's top right. icon: inline pictures in the question ({icon|path}, {currency|id}: ui_rich_text), size square and gap either side. enabled 0 gives the dialogs back to the game (as does a campaign without the library package, and the campaign select screen: the art is the package's). Controller play and the waiting spinner stay the game's.",
+  "confirm": {
+    "enabled": 1,
+    "style": "frame",
+    "place": "screen",
+    "text_width": 520, "top": 110, "text_gap": 30, "bottom": 40, "side": 60, "min_width": 640,
+    "question_font": "confirm_dialog_question", "question_colour": "confirm_dialog_question",
+    "answer_font": "confirm_dialog_answer", "answer_colour": "confirm_dialog_answer",
+    "button": {"height": 38, "pad": 24, "min_width": 140, "gap": 16, "text_dy": 0, "hover_pad_y": 16,
+               "hover": "shared/confirm_dialog/confirm_dialog.answer_text_selected_overlay.png"},
+    "back": {"offset": [-20, 20]},
+    "icon": {"size": 32, "gap": 2}
+  },
+  "_announce": "The library's announcement, once per campaign (engine_hooks/src/announce.c): a confirm dialog styled by this section (names it lacks come from confirm). blocks: drawn in this order above the question text, centred; a text block is a string id in a font_ref and colour id, wrapped at width (default text_width), gap below it; an image block is a picture at size (default its own); a lines block is a named list (ddx_mods: the mods that registered with announce_mod or a config's global announce key), each line in its own font and colour else the block's, after bullet (a string id), line_gap apart, under heading (shown only with lines). delay_frames: frames the Hamlet must stay ready before it shows; raid_delay_frames the same on an expedition. test 1: show once per game start even if the campaign has seen it (for tuning). enabled 0: never shown.",
+  "announce": {
+    "enabled": 1,
+    "test": 0,
+    "delay_frames": 30,
+    "raid_delay_frames": 1,
+    "text_width": 600, "top": 118, "text_gap": 22, "bottom": 42, "side": 70, "min_width": 780,
+    "blocks": {
+      "title": {"text": "engine_announce_title", "font": "pop_event_header", "colour": "engine_announce_title", "gap": 0},
+      "tagline": {"text": "engine_announce_tagline", "font": "journal_popup_title", "colour": "engine_announce_tagline", "gap": 18},
+      "divider": {"image": "campaign/town/glossary/separator.png", "size": [520, 7], "gap": 20},
+      "body": {"text": "engine_announce_body", "font": "confirm_dialog_question", "colour": "engine_announce_body", "gap": 16},
+      "body_2": {"text": "engine_announce_body_2", "font": "confirm_dialog_question", "colour": "engine_announce_body", "gap": 20},
+      "mods": {"lines": "ddx_mods", "heading": "engine_announce_mods", "heading_font": "journal_popup_title",
+               "heading_colour": "engine_announce_tagline", "heading_gap": 8, "font": "banner_sub_header",
+               "colour": "engine_announce_body", "bullet": "engine_announce_bullet", "line_gap": 6, "gap": 20},
+      "divider_2": {"image": "campaign/town/glossary/separator.png", "size": [300, 7], "gap": 14},
+      "footer": {"text": "engine_announce_footer", "font": "banner_sub_header", "colour": "engine_announce_footer", "gap": 0}
+    }
+  }
+}

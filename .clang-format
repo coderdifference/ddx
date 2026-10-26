@@ -1,0 +1,13 @@
+# Shared style for maintained native sources, headers, examples, and test harnesses.
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 120
+BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+SortIncludes: Never
+ReflowComments: Never
+PointerAlignment: Right
+AlignConsecutiveMacros: Consecutive
