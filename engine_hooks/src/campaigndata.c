@@ -8,7 +8,7 @@
 // game's in that object; the game reads its own by name and ignores ours. Options::System::ResetProfileOptions
 // (Darkest::UpdateStateInternal, after CleanupCampaign) clears the values, so a campaign started after another doesn't
 // inherit them. Windows: Save and Restore are inlined (mid-function sites, below).
-#include "common.h"
+#include "modmenu_internal.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -61,6 +61,7 @@ void campaigndata_set(const char *name, int value) {
 }
 
 static void clear(void) {
+    modmenu_reset();
     for (int i = 0; i < g_nfields; i++)
         g_fields[i].present = false, g_fields[i].value = 0;
 }
@@ -70,6 +71,7 @@ typedef bool (*restoredata_get_u32_fn)(void *self, const char *key, unsigned *va
 
 // Our keys, written into the SaveData after the game's profile options (inside "profile_options", after "values").
 static void save_fields(void *save) {
+    modmenu_save_fields(save);
     if (!save)
         return;
     savedata_add_u32_fn add = (*(savedata_add_u32_fn **)save)[SAVEDATA_ADD_U32 / 8];
@@ -92,6 +94,7 @@ static void save_fields(void *save) {
 
 // Read back from the same place; the values were cleared just before (another campaign's never carry over).
 static void restore_fields(void *restore) {
+    modmenu_restore_fields(restore);
     if (!restore)
         return;
     restoredata_get_u32_fn get = (*(restoredata_get_u32_fn **)restore)[RESTOREDATA_GET_U32 / 8];

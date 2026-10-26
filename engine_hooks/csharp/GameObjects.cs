@@ -108,8 +108,12 @@ public sealed unsafe class GameObjects(DDXApi api)
     public byte[]? BuffDescriptionBytes(uint hash, nint hero)
     {
         byte* text = stackalloc byte[512];
-        if (((delegate* unmanaged[Cdecl]<uint, nint, byte*, nuint, byte>)
-            api.NativeExport("game_buff_description"))(hash, hero, text, 512) == 0)
+        if (
+            (
+                (delegate* unmanaged[Cdecl]<uint, nint, byte*, nuint, byte>)
+                    api.NativeExport("game_buff_description")
+            )(hash, hero, text, 512) == 0
+        )
             return null;
         ReadOnlySpan<byte> buffer = new(text, 512);
         int length = buffer.IndexOf((byte)0);

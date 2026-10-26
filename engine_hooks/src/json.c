@@ -21,6 +21,22 @@ static void ws(P *s) {
 }
 static bool parse_value(P *s, JVal *out);
 
+static bool hex4(P *s, unsigned *out) {
+    unsigned n = 0;
+    for (int i = 0; i < 4; i++) {
+        unsigned char c = (unsigned char)*s->p;
+        int v = c >= '0' && c <= '9'   ? c - '0'
+                : c >= 'a' && c <= 'f' ? c - 'a' + 10
+                : c >= 'A' && c <= 'F' ? c - 'A' + 10
+                                       : -1;
+        if (v < 0)
+            return false;
+        s->p++;
+        n = (n << 4) | (unsigned)v;
+    }
+    *out = n;
+    return true;
+}
 static char *parse_string(P *s) {
     if (*s->p != '"') {
         fail(s, "expected string");
@@ -29,24 +45,104 @@ static char *parse_string(P *s) {
     s->p++;
     size_t cap = 32, n = 0;
     char *buf = malloc(cap);
-    while (*s->p && *s->p != '"') {
-        char c = *s->p++;
-        if (c == '\\') {
-            char e = *s->p++;
-            c = e == 'n' ? '\n' : e == 't' ? '\t' : e == 'r' ? '\r' : e; // \uXXXX not needed here
-        }
-        if (n + 2 > cap)
-            buf = realloc(buf, cap *= 2);
-        buf[n++] = c;
-    }
-    if (*s->p != '"') {
-        fail(s, "unterminated string");
-        free(buf);
+    if (!buf)
         return NULL;
+    while (*s->p && *s->p != '"') {
+        unsigned char c = (unsigned char)*s->p++;
+        char bytes[4];
+        size_t count = 1;
+        bytes[0] = (char)c;
+        if (c < 32)
+            goto invalid;
+        if (c == 92) {
+            char e = *s->p;
+            if (!e)
+                goto invalid;
+            s->p++;
+            switch (e) {
+            case 'n':
+                bytes[0] = '\n';
+                break;
+            case 't':
+                bytes[0] = '\t';
+                break;
+            case 'r':
+                bytes[0] = '\r';
+                break;
+            case 'b':
+                bytes[0] = '\b';
+                break;
+            case 'f':
+                bytes[0] = '\f';
+                break;
+            case 92:
+            case '/':
+            case '"':
+                bytes[0] = e;
+                break;
+            case 'u': {
+                unsigned cp;
+                if (!hex4(s, &cp))
+                    goto invalid;
+                if (cp >= 0xd800 && cp <= 0xdbff) {
+                    if (s->p[0] != 92 || s->p[1] != 'u')
+                        goto invalid;
+                    s->p += 2;
+                    unsigned low;
+                    if (!hex4(s, &low) || low < 0xdc00 || low > 0xdfff)
+                        goto invalid;
+                    cp = 0x10000 + ((cp - 0xd800) << 10) + low - 0xdc00;
+                } else if (cp >= 0xdc00 && cp <= 0xdfff)
+                    goto invalid;
+                // JVal stores C strings: embedded NUL cannot be represented safely.
+                if (!cp)
+                    goto invalid;
+                if (cp < 0x80)
+                    bytes[0] = (char)cp;
+                else if (cp < 0x800) {
+                    count = 2;
+                    bytes[0] = (char)(0xc0 | (cp >> 6));
+                    bytes[1] = (char)(0x80 | (cp & 63));
+                } else if (cp < 0x10000) {
+                    count = 3;
+                    bytes[0] = (char)(0xe0 | (cp >> 12));
+                    bytes[1] = (char)(0x80 | ((cp >> 6) & 63));
+                    bytes[2] = (char)(0x80 | (cp & 63));
+                } else {
+                    count = 4;
+                    bytes[0] = (char)(0xf0 | (cp >> 18));
+                    bytes[1] = (char)(0x80 | ((cp >> 12) & 63));
+                    bytes[2] = (char)(0x80 | ((cp >> 6) & 63));
+                    bytes[3] = (char)(0x80 | (cp & 63));
+                }
+                break;
+            }
+            default:
+                goto invalid;
+            }
+        }
+        if (n + count + 1 > cap) {
+            size_t next = cap * 2;
+            char *p = realloc(buf, next);
+            if (!p) {
+                free(buf);
+                return NULL;
+            }
+            buf = p;
+            cap = next;
+        }
+        memcpy(buf + n, bytes, count);
+        n += count;
     }
+    if (*s->p != '"')
+        goto invalid;
     s->p++;
     buf[n] = 0;
     return buf;
+invalid:
+    fail(s, "invalid JSON string");
+    free(buf);
+    return NULL;
 }
 
 static bool parse_value(P *s, JVal *out) {

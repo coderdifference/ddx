@@ -12,6 +12,7 @@ On macOS, install the Xcode command line tools, then:
 git clone https://github.com/coderdifference/ddx.git
 cd ddx
 ./engine_hooks/build.sh
+./mod_menu/tools/build.sh osx-x64
 ./engine_hooks/tests/run.sh
 ```
 
@@ -24,7 +25,7 @@ brew install mingw-w64
 ./engine_hooks/build_windows.sh
 ```
 
-Outputs: `engine_hooks/build/win/ddx.dll`, `ddxlaunch.exe`, and the import library for native clients. C# clients also need the .NET 10 SDK and the platform's NativeAOT toolchain.
+Outputs: `engine_hooks/build/win/ddx.dll`, `ddxlaunch.exe`, and the import library for native clients. Build `mod_menu/src/Client/DDXModMenu.Client.csproj` on Windows with `dotnet publish -c Release -r win-x64 -o mod_menu/artifacts/win-x64` before staging. C# clients also need the .NET 10 SDK and the platform's NativeAOT toolchain.
 
 ## Run
 
@@ -70,3 +71,7 @@ Start with the [modder's guide](docs/README.md). The repository includes a [nati
 | `tools` | Localization compiler and package staging |
 
 This repository contains DDX and its examples. No game executable, game data dump or installed game is included. An installed copy of Darkest Dungeon is required to use it.
+
+## Built-in campaign mod options
+
+DDX includes a JSON-driven mod configuration service and C# extension hooks. See [the authoring guide](docs/12-mod-options.md) and [service build instructions](mod_menu/README.md). The native macOS adapter is implemented but awaits live-game verification; Windows mappings are checked against the guest executable; both platforms await live-game verification.

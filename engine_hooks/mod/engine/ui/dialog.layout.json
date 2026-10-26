@@ -41,5 +41,24 @@
       "divider_2": {"image": "campaign/town/glossary/separator.png", "size": [300, 7], "gap": 14},
       "footer": {"text": "engine_announce_footer", "font": "banner_sub_header", "colour": "engine_announce_footer", "gap": 0}
     }
+  },
+  "modmenu": {
+    "size": [
+      1280,
+      800
+    ],
+    "list_width": 312,
+    "margin": 28,
+    "panel_top": 156,
+    "panel_bottom": 650,
+    "panel_padding": 20,
+    "title_y": 110,
+    "footer_y": 680,
+    "button_size": [
+      128,
+      96
+    ],
+    "input_height": 46,
+    "_comment": "Fixed logical size; scaled down to fit the screen. The title sits below the 104-unit frame ornament. The footer stays outside both scrolling panels."
   }
 }

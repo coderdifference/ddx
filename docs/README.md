@@ -23,7 +23,7 @@ Choose the smallest integration that gives your mod the behavior it needs. JSON 
 
 ## References
 
-[Config](03-config-reference.md) · [Tooltips](04-tooltips.md) · [Class UI](05-ui-features.md) · [Recipes](07-cookbook.md) · [Limits](10-limits-and-distribution.md) · [UI library](11-ui-library.md) · [Hook points](12-hook-points.md) · [C API](14-api-reference.md) · [Game hook catalogue](15-game-hooks.md) · [Popup sources](popup-sources.md)
+[Config](03-config-reference.md) · [Tooltips](04-tooltips.md) · [Class UI](05-ui-features.md) · [Recipes](07-cookbook.md) · [Limits](10-limits-and-distribution.md) · [Campaign mod options](12-mod-options.md) · [UI library](11-ui-library.md) · [Hook points](12-hook-points.md) · [C API](14-api-reference.md) · [Game hook catalogue](15-game-hooks.md) · [Popup sources](popup-sources.md)
 
 Register services during `engine_client_init`, before DDX installs the hooks those registrations require. Prefix fields, strings and other global identifiers. Call the next wrapper when wrapping a catalogued function. Keep game-object operations on the game thread and treat native handles as borrowed.
 

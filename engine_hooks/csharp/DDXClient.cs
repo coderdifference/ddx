@@ -7,7 +7,7 @@ namespace DDX.Managed;
 /// Base class for a DDX NativeAOT client. It binds to DDX's exported C API from the host process,
 /// registers hook-point callbacks, and keeps callback state alive for the lifetime of the client.
 /// </summary>
-public abstract unsafe class DDXClient
+public abstract unsafe partial class DDXClient
 {
     /// <summary>The managed client&apos;s required DDX host ABI version. Initialization rejects hosts advertising a different version.</summary>
     public const int ApiVersion = 1;

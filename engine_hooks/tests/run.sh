@@ -74,3 +74,7 @@ clang -Wall -Wextra -Wno-unused-parameter -ffunction-sections -fdata-sections -W
 clang -Wall -Wextra -Wno-unused-parameter -ffunction-sections -fdata-sections -Wl,-dead_strip \
     -fsanitize=address -o ../build/test_effect_prefix test_effect_prefix.c
 ../build/test_effect_prefix
+
+# Campaign form service, copied JSON ownership and Unicode escape decoding.
+clang -Wall -Wextra -Wno-unused-parameter -o ../build/test_modmenu test_modmenu.c ../src/modmenu.c ../src/modmenu_json.c ../src/json.c
+../build/test_modmenu
