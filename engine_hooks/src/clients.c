@@ -42,6 +42,8 @@ static void load_client(const char *engine_dir, const char *path) {
     EngineClientInfo info = {.api = ENGINE_CLIENT_API, .engine_dir = engine_dir};
     mods_set_current(mods_find(engine_dir)); // its registrations are its mod's
     int err = init(&info);
+    if (!err) modmenu_discover(engine_dir);
+    modmenu_client_finished(mods_find(engine_dir), err == 0);
     mods_set_current(-1);
     if (err) {
         logf_("client %s: init failed (%d)", path, err);
@@ -72,6 +74,11 @@ static bool scan(const char *engine_dir, void *ud) {
 }
 
 void clients_load_all(void) {
+    char engine[4096], service[4600];
+    if (library_engine_dir(engine, sizeof engine)) {
+        snprintf(service, sizeof service, "%s/ddx_mod_menu%s", engine, CLIENT_EXT);
+        load_client(engine, service); // Built-in framework service, not a campaign mod.
+    }
     mod_engine_dirs(scan, NULL);
     logf_("clients: %d loaded, %d failed", g_loaded, g_failed);
 }

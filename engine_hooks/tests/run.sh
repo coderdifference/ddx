@@ -74,3 +74,16 @@ clang -Wall -Wextra -Wno-unused-parameter -ffunction-sections -fdata-sections -W
 clang -Wall -Wextra -Wno-unused-parameter -ffunction-sections -fdata-sections -Wl,-dead_strip \
     -fsanitize=address -o ../build/test_effect_prefix test_effect_prefix.c
 ../build/test_effect_prefix
+
+# Campaign form service, copied JSON ownership and Unicode escape decoding.
+clang -Wall -Wextra -Wno-unused-parameter -o ../build/test_modmenu test_modmenu.c ../src/modmenu.c ../src/modmenu_json.c ../src/json.c
+../build/test_modmenu
+
+# Existing upgrade requirements, including bounds and missing currencies.
+clang -Wall -Wextra -Wno-unused-parameter -o ../build/test_upgrade_cost test_upgrade_cost.c
+../build/test_upgrade_cost
+
+# Native form rendering must not allocate offscreen widget strings.
+clang -Wall -Wextra -Wno-unused-parameter -ffunction-sections -fdata-sections -Wl,-dead_strip \
+    -o ../build/test_modmenu_draw test_modmenu_draw.c ../src/json.c ../src/modmenu_json.c
+../build/test_modmenu_draw

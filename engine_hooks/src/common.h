@@ -1634,3 +1634,16 @@ bool ui_name_frame_split(const void *caller, const char *title, const char *blan
 
 // Semantic object views, owned equipment rows, and native UI adapters.
 #include "game_objects.h"
+
+// modmenu.c: optional campaign form service. UTF-8 replies released exactly once.
+typedef char *(*ModMenuDispatch)(const char *json, size_t length);
+typedef void (*ModMenuRelease)(char *reply);
+int modmenu_host_version(void);
+int modmenu_register(const char *id, ModMenuDispatch dispatch, ModMenuRelease release);
+int modmenu_form_register(const char *schema, ModMenuDispatch event, ModMenuRelease release);
+const char *modmenu_client_event(const char *id, const char *json);
+const char *modmenu_values(const char *id);
+int modmenu_commit(const char *token, size_t token_length, const char *json, size_t length);
+void modmenu_discover(const char *engine_dir);
+void modmenu_client_finished(int owner, bool success);
+void modmenu_install(void);

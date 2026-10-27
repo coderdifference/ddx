@@ -33,6 +33,10 @@ def main():
         parser.error('--platform and --output are required for staging')
     artifacts = ([ROOT / 'engine_hooks/build/ddx.dylib'] if args.platform == 'macos' else
                  [ROOT / 'engine_hooks/build/win/ddx.dll', ROOT / 'engine_hooks/build/win/ddxlaunch.exe'])
+    service = ROOT / ('mod_menu/artifacts/osx-x64/ddx_mod_menu.dylib' if args.platform == 'macos' else
+                      'mod_menu/artifacts/win-x64/ddx_mod_menu.dll')
+    if not service.is_file():
+        parser.error(f'built-in menu service missing: {service}; build mod_menu first')
     for artifact in artifacts:
         if not artifact.is_file():
             parser.error(f'build artifact missing: {artifact}')
@@ -42,6 +46,7 @@ def main():
     shutil.copytree(ROOT / 'engine_hooks/mod', output, dirs_exist_ok=True,
                     ignore=shutil.ignore_patterns('*.loc2', '*_modfiles.txt', 'bin', '.DS_Store'))
     (output / 'bin').mkdir()
+    shutil.copy2(service, output / 'engine' / service.name)
     for artifact in artifacts:
         shutil.copy2(artifact, output / 'bin' / artifact.name)
     subprocess.run([sys.executable, str(ROOT / 'tools/localization.py'),

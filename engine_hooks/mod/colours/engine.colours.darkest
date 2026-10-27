@@ -3,3 +3,5 @@ colour: .id "engine_announce_tagline"   .rgba 185 168 136 255
 colour: .id "engine_announce_body"      .rgba 217 212 199 255
 colour: .id "engine_announce_accent"    .rgba 214 84 58 255
 colour: .id "engine_announce_footer"    .rgba 138 130 117 255
+
+colour: .id "engine_modmenu_comment" .rgba 180 180 172 255

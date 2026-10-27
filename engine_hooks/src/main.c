@@ -69,6 +69,7 @@ static void ddx_start(void) {
     ui_panel_install();
     ui_confirm_install();
     ui_input_install();
+    modmenu_install();
     story_intro_skip_install();
     ui_install();
 }

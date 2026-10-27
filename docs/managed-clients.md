@@ -29,3 +29,7 @@ Low-level APIs expose unmanaged function pointers. Use exact native signatures a
 `NativeExport` is for services without a typed wrapper. Read the C declaration before casting. Use semantic adapters for game objects; putting offsets and raw C++ layouts into a managed client makes every platform change harder to maintain.
 
 Restart the game after replacing the client. Check its log and `ddx.log`, then verify campaign activation and deactivation. A successful `dotnet publish` proves compilation, not DDX-hosted loading.
+
+## Campaign configuration forms
+
+Call `RegisterModOptions()` during `OnInitialize` to register `mod_options/options.json`, then override `OnModOptions(ModOptionsContext)` for dynamic forms, validation and committed settings. See [Campaign mod options](12-mod-options.md) for a complete JSON form and C# example.

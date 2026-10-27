@@ -121,3 +121,8 @@ bool ui_estate_currency_place(CurrencyPlacement fn);
 bool game_upgrades_available(void);
 int game_skill_effect_count(void *skill);
 int game_inventory_item_count(const void *inventory);
+
+// Existing game-owned upgrade currency amounts. Game thread only, after campaign load.
+// Level 0 is code 'a'; no vector allocation or new currency entries.
+bool game_upgrade_cost(unsigned tree, int level, unsigned currency, int *out);
+bool game_upgrade_set_cost(unsigned tree, int level, unsigned currency, int value);

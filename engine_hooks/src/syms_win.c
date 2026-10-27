@@ -3503,6 +3503,19 @@ const WinSym g_win_syms[] = {
      6,
      {0x40, 0x55, 0x56, 0x57, 0x41, 0x56},
      NULL}, // push rbp ; push rsi ; push rdi ; push r14 (callers: UpdateStateInternal, RestoreOptions)
+    // Built-in mod options: matched Menu ShowBase's menu_base_element_%s, pause/unpause audio,
+    // PreChildrenShowInternal calls to ShowBase, ActiveUpdate blur/state logic and LoadCampaign's starting_roster.
+    {"App", 0x2a5bb40, 0, {0}, NULL},
+    {"_ZN2UI5Panel4Menu23PreChildrenShowInternalEv", 0x801790, 7, {0x48, 0x8b, 0xc4, 0x48, 0x89, 0x58, 0x10}, NULL},
+    {"_ZN2UI5Panel4Menu8ShowBaseEv", 0x802020, 5, {0x48, 0x8b, 0xc4, 0x55, 0x53}, NULL},
+    {"_ZN2UI5Panel4Menu12ActiveUpdateEf", 0x801540, 6, {0x40, 0x53, 0x48, 0x83, 0xec, 0x30}, NULL},
+    {"_ZN2UI5Panel4Menu17AttemptDeactivateEb", 0x801100, 5, {0x48, 0x89, 0x5c, 0x24, 0x10}, NULL},
+    {"_ZN7Darkest12LoadCampaignERKNS_20ProcessProfileResultE", 0x3d8590, 5, {0x48, 0x89, 0x5c, 0x24, 0x18}, NULL},
+    {"_ZN15ProfileGameFile4SaveE12StorageMountbbjbb", 0x5619f0, 5, {0x40, 0x53, 0x55, 0x56, 0x57}, NULL},
+    {"_Z16open_RestoreData12StorageMount8c_stringjbt", 0x293530, 5, {0x48, 0x89, 0x5c, 0x24, 0x10}, NULL},
+    {"win:modmenu FlushSaveData", 0x370ec0, 5, {0x48, 0x89, 0x5c, 0x24, 0x10}, NULL},
+    {"win:OpenRestoreDataCount", 0x2a86b34, 0, {0}, NULL},
+
 };
 const int g_win_nsyms = (int)(sizeof g_win_syms / sizeof g_win_syms[0]);
 #endif
